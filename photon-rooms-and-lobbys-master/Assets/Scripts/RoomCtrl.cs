@@ -15,13 +15,15 @@ public class RoomCtrl : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject playerListItemPrefab;
     [SerializeField] private GameObject MasterPanel;
     [SerializeField] private RoomUIManager roomUI;
-    //[SerializeField]
-    //private TextMeshProUGUI gameModeText, gameCodeText;
-    //[SerializeField]
-    //private Dropdown DropdownMap;
+    
+
     GameModeEnum m_gameMode;
     string roomCode;
     bool visible;
+    int maxPlayers, currentPlayersCount;
+
+    public int CurrentPlayersCount { get => currentPlayersCount; set => currentPlayersCount = value; }
+    public int MaxPlayers { get => maxPlayers; set => maxPlayers = value; }
 
     public void Awake()
     {
@@ -35,25 +37,7 @@ public class RoomCtrl : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        GetRoomGameMode((int)PhotonNetwork.CurrentRoom.CustomProperties[GAME_MODE_PROP_KEY]);
-        roomCode = PhotonNetwork.CurrentRoom.Name;
-        visible = PhotonNetwork.CurrentRoom.IsVisible;
-        Debug.Log(roomCode + " " + m_gameMode + " " + visible);
-        roomUI.SetUpRoomUI(m_gameMode.ToString(), roomCode, visible);
-
-
-        //int map = (int)PhotonNetwork.CurrentRoom.CustomProperties[MAP_PROP_KEY];
-        //Debug.Log("Map : " + map);
-        //DropdownMap.value = map;        
-        //RoomName.text = PhotonNetwork.CurrentRoom.Name;
-        //if (PhotonNetwork.IsMasterClient)
-        //{
-        //    MasterPanel.SetActive(true);
-        //}
-        //else
-        //{
-        //    MasterPanel.SetActive(false);
-        //}
+        UpdateRoomData();
         RemovePlayerFromList();
         FillPlayerList();
     }
@@ -75,16 +59,14 @@ public class RoomCtrl : MonoBehaviourPunCallbacks
     {
         RemovePlayerFromList();
         FillPlayerList();
+        UpdateRoomData();
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
+        UpdateRoomData();
         RemovePlayerFromList();
         FillPlayerList();
-        if (PhotonNetwork.IsMasterClient)
-        {
-            MasterPanel.SetActive(true);
-        }
     }
 
     public override void OnMasterClientSwitched(Player newMasterClient)
@@ -99,23 +81,28 @@ public class RoomCtrl : MonoBehaviourPunCallbacks
     {
         foreach (Player player in PhotonNetwork.PlayerList)
         {
-            GameObject tempListing = Instantiate(playerListItemPrefab, playersContainer);
-            //Text tempText = tempListing.transform.GetChild(0).GetComponent<Text>();
-            //tempText.text = player.NickName;            
+            roomUI.usersUpdate(PhotonNetwork.NetworkingClient.UserId, player.NickName, PhotonNetwork.GetPing());            
         }
     }
 
     void RemovePlayerFromList()
     {
         // Borra cada entrada de la lista de jugadores
-        for (int i = playersContainer.childCount - 1; i >= 0; i--)
-        {
-            Destroy(playersContainer.GetChild(i).gameObject);
-        }
+        roomUI.DestroyUsers();
     }
     #endregion
 
     #region public Methods
+    public void UpdateRoomData()
+    {
+        GetRoomGameMode((int)PhotonNetwork.CurrentRoom.CustomProperties[GAME_MODE_PROP_KEY]);
+        roomCode = PhotonNetwork.CurrentRoom.Name;
+        visible = PhotonNetwork.CurrentRoom.IsVisible;
+        maxPlayers = PhotonNetwork.CurrentRoom.MaxPlayers;
+        currentPlayersCount = PhotonNetwork.CurrentRoom.PlayerCount;
+        Debug.Log(roomCode + " " + m_gameMode + " " + visible);
+        roomUI.SetUpRoomUI(m_gameMode.ToString(), roomCode, visible, maxPlayers, currentPlayersCount, PhotonNetwork.IsMasterClient);
+    }
     public void StartGame()
     {
         if (PhotonNetwork.IsMasterClient)
@@ -147,4 +134,18 @@ public class RoomCtrl : MonoBehaviourPunCallbacks
         _visible = visible;
     }
 
+    //public void ChooseColor(int _color)
+    //{
+    //    ColorEnum userColor; 
+    //    ColorEnum[] colors = { ColorEnum.Blue, ColorEnum.Red, ColorEnum.Green, ColorEnum.Yellow, ColorEnum.Black, ColorEnum.Purple };
+    //    for (int i = 0; i < colors.Length; i++)
+    //    {
+    //        if(i == _color)
+    //        {
+    //            userColor = colors[i];
+    //            roomUI.PaintUser(PhotonNetwork.NetworkingClient.UserId, userColor);
+    //            break;
+    //        }
+    //    }
+    //}
 }

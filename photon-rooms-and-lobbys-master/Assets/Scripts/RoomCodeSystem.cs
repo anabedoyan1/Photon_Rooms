@@ -13,9 +13,11 @@ public class RoomCodeSystem : MonoBehaviour
     {
         userString = codeField.GetComponentInChildren<TextMeshProUGUI>();
     }
-
+    
     public void SendCode()
     {
-        LobbyCtrl.Instance.FindRoomByCode(userString.text.ToString());
+        Debug.Log("Send code " + codeField.text);
+        LobbyCtrl.Instance.FindRoomByCode(codeField.text);
     }
+    
 }

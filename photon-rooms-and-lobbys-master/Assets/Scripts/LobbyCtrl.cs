@@ -76,6 +76,10 @@ public class LobbyCtrl : MonoBehaviourPunCallbacks
         }
     }
 
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        Debug.Log("No se encontro partida con ese codigo");
+    }
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
         Debug.Log("No se encontro partida aleatoria");
@@ -152,7 +156,7 @@ public class LobbyCtrl : MonoBehaviourPunCallbacks
         Debug.Log("Creando nueva sala: " + RoomName);
         roomOptions.CustomRoomPropertiesForLobby = new string[] { GAME_MODE_PROP_KEY};
         roomOptions.CustomRoomProperties = new ExitGames.Client.Photon.Hashtable {{ GAME_MODE_PROP_KEY, gameMode }};
-        //SetGameMode(gameMode);
+        SetGameMode(gameMode);
         //roomOptions.CustomRoomPropertiesForLobby = new string[] { GAME_MODE_PROP_KEY, ROOM_CODE_KEY };
         //roomOptions.CustomRoomProperties = new ExitGames.Client.Photon.Hashtable {{ GAME_MODE_PROP_KEY, gameMode }, { ROOM_CODE_KEY, roomCode } };       
         PhotonNetwork.CreateRoom(RoomName, roomOptions);        
@@ -161,10 +165,10 @@ public class LobbyCtrl : MonoBehaviourPunCallbacks
     {
         UIManager.Instance.ScrollPanel.SetActive(true);
         var expectedCustomRoomProperties = new ExitGames.Client.Photon.Hashtable();
-        //SetGameMode(gameMode);
 
         if (gameMode >= 0)
-        {            
+        {
+            Debug.Log("El game mode seleccionado es: " + gameMode);
             expectedCustomRoomProperties.Add(GAME_MODE_PROP_KEY, gameMode);
             Debug.Log("Buscando partida con filtros|  Game mode: " + (int)expectedCustomRoomProperties["gm"]);
             PhotonNetwork.JoinRandomRoom(expectedCustomRoomProperties, (byte)maxPlayers);
@@ -172,19 +176,9 @@ public class LobbyCtrl : MonoBehaviourPunCallbacks
     }
 
     public void FindRoomByCode(string _code)
-    {        
-        //PhotonNetwork.JoinRoom(_code);
-        //Debug.Log(_code);
-        //var expectedCustomRoomProperties = new ExitGames.Client.Photon.Hashtable();
-        //if(_code == (string)roomOptions.CustomRoomProperties[ROOM_CODE_KEY])
-        //{
-        //    expectedCustomRoomProperties.Add(ROOM_CODE_KEY, _code);
-        //    PhotonNetwork.JoinRandomRoom(expectedCustomRoomProperties, (byte)maxPlayers);
-        //}
-        //else
-        //{
-        //    Debug.Log("Invalid code");
-        //}
+    {
+        Debug.Log("Looking for room : " + _code);
+        PhotonNetwork.JoinRoom(_code);
     }
 
     public string GenerateRoomCode(int stringLength = 5)
@@ -211,7 +205,7 @@ public class LobbyCtrl : MonoBehaviourPunCallbacks
 
     public void SetGameMode(int _gameMode)
     {
-        if(_gameMode > 1)
+        if(_gameMode >= 2)
         {
             gameMode = (byte)Random.Range(0, 1);
         }
@@ -220,17 +214,6 @@ public class LobbyCtrl : MonoBehaviourPunCallbacks
             gameMode = (byte)_gameMode;
         }
     }    
-
-    public void SetMaxPlayers(string size)
-    {
-        int _maxPlayers = int.Parse(size);
-        if (string.IsNullOrEmpty(size))
-            expectedMaxPlayers = 0;
-        else
-            expectedMaxPlayers = _maxPlayers;
-
-        roomOptions.MaxPlayers = (byte)_maxPlayers;
-    }
     
     public void SetRoomIsVisible(bool visible)
     {
